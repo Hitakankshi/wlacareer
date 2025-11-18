@@ -10,7 +10,7 @@ const jobs = [
   {
     title: 'Marketing Manager',
     company: 'Starlight Resorts',
-    location: 'Maldives',
+    location: '',
     type: 'Full-time',
     tags: ['Marketing', 'Luxury', 'Hospitality'],
   },
@@ -109,7 +109,7 @@ export default function JobsPage() {
                     </CardDescription>
                   </div>
                   <div className="flex flex-col items-end gap-1 text-sm text-foreground/60">
-                    <span className="flex items-center gap-1.5"><MapPin size={14} /> {job.location}</span>
+                    {job.location && <span className="flex items-center gap-1.5"><MapPin size={14} /> {job.location}</span>}
                     <span className="flex items-center gap-1.5"><Clock size={14} /> {job.type}</span>
                   </div>
                 </div>
