@@ -4,6 +4,7 @@
  * Core Philosophy:
  * This ruleset enforces a strict user-ownership model for user profiles and their related data (applications, purchased courses).
  * Job postings, internships, and courses are publicly readable, but only admins can modify them.
+ * Contact form submissions are publicly writable, but only admins can read them.
  *
  * Data Structure:
  * - /jobPostings/{jobPostingId}: Publicly readable job postings.
@@ -14,12 +15,14 @@
  * - /users/{userId}/purchasedCourses/{courseId}: Courses purchased by a user, only accessible by the owning user.
  * - /employees/{employeeId}: Employee data, only accessible by admins.
  * - /roles_admin/{userId}: Documents indicating admin privileges.
+ * - /contactMessages/{contactMessageId}: Publicly writable contact submissions.
  *
  * Key Security Decisions:
  * - Public listing of job postings, internships, and courses.
  * - Strict user ownership for user profiles and associated data.
  * - Admin-only access for employee data and modification of job postings, internships, and courses.
  * - No user listing is allowed.
+ * - Public write access for contact messages, admin-only read.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -122,6 +125,18 @@ service cloud.firestore {
     match /roles_admin/{userId} {
         allow get, create, update, delete: if isAdmin();
         allow list: if isAdmin();
+    }
+
+    /**
+     * @description Allows anyone to submit a contact form message, but restricts read, update, and delete to admins.
+     * @path /contactMessages/{contactMessageId}
+     * @allow (create) Public write access.
+     * @allow (get, list, update, delete) Admin user with matching role.
+     * @principle Public write for contact submissions, admin-only management.
+     */
+    match /contactMessages/{contactMessageId} {
+      allow create: if true;
+      allow get, list, update, delete: if isAdmin();
     }
   }
 

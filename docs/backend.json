@@ -336,6 +336,37 @@
         "applicationDate",
         "status"
       ]
+    },
+    "ContactMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactMessage",
+      "type": "object",
+      "description": "Represents a message submitted through the contact form.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the person sending the message."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the sender.",
+          "format": "email"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject of the message."
+        },
+        "message": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "submittedAt": {
+          "type": "string",
+          "description": "Date when the message was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "email", "subject", "message", "submittedAt"]
     }
   },
   "auth": {
@@ -481,8 +512,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/contactMessages/{contactMessageId}",
+        "definition": {
+          "entityName": "ContactMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ContactMessage"
+          },
+          "description": "Stores messages submitted through the contact form. Anyone can create, but only admins can read.",
+          "params": [
+            {
+              "name": "contactMessageId",
+              "description": "The unique ID of the contact message."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support a luxury job and course platform while adhering to the principles of Authorization Independence, Structural Segregation, and Access Modeling. User profiles and related data are organized under `/users/{userId}` for private data. Job postings, internships, and courses are stored in separate root-level collections (`/jobPostings`, `/internships`, `/courses`) to facilitate easy querying and listing. Applications are stored as subcollections of user profiles (`/users/{userId}/applications/{applicationId}`) to maintain clear ownership. Purchased courses are modeled as a subcollection of the user profiles (`/users/{userId}/purchasedCourses/{courseId}`).\n\nAuthorization Independence is achieved by denormalizing relevant authorization data (e.g., user IDs, roles) into the documents where access control is required. For instance, while the platform does not implement any collaborative features needing this strategy, if it were to be extended to include collaborative course creation or job posting management, relevant membership roles would be denormalized into course or job posting documents.\n\nQAPs (Rules are not Filters) is supported by structuring the data to allow secure `list` operations. Segregating job postings, internships, and courses into their own collections ensures that rules can be applied at the collection level without needing to filter based on document content. Path-based ownership for user-related data and membership maps (if needed in future collaborative features) enable secure listing of user-owned or shared resources."
+    "reasoning": "The Firestore data structure is designed to support a luxury job and course platform while adhering to the principles of Authorization Independence, Structural Segregation, and Access Modeling. User profiles and related data are organized under `/users/{userId}` for private data. Job postings, internships, and courses are stored in separate root-level collections (`/jobPostings`, `/internships`, `/courses`) to facilitate easy querying and listing. Applications are stored as subcollections of user profiles (`/users/{userId}/applications/{applicationId}`) to maintain clear ownership. Purchased courses are modeled as a subcollection of the user profiles (`/users/{userId}/purchasedCourses/{courseId}`). Contact messages are stored in their own collection to allow public write access while restricting read access.\n\nAuthorization Independence is achieved by denormalizing relevant authorization data (e.g., user IDs, roles) into the documents where access control is required. For instance, while the platform does not implement any collaborative features needing this strategy, if it were to be extended to include collaborative course creation or job posting management, relevant membership roles would be denormalized into course or job posting documents.\n\nQAPs (Rules are not Filters) is supported by structuring the data to allow secure `list` operations. Segregating job postings, internships, and courses into their own collections ensures that rules can be applied at the collection level without needing to filter based on document content. Path-based ownership for user-related data and membership maps (if needed in future collaborative features) enable secure listing of user-owned or shared resources."
   }
 }

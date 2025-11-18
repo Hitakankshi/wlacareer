@@ -18,6 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Mail, Phone } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { addDoc, collection } from 'firebase/firestore';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -30,6 +32,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -41,13 +44,36 @@ export default function ContactPage() {
     },
   });
 
-  function onSubmit(data: FormData) {
-    console.log(data);
-    toast({
-      title: 'Message Sent!',
-      description: "Thank you for contacting us. We'll get back to you shortly.",
-    });
-    form.reset();
+  async function onSubmit(data: FormData) {
+    if (!firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not connect to the database. Please try again later.',
+      });
+      return;
+    }
+
+    try {
+      const messagesRef = collection(firestore, 'contactMessages');
+      await addDoc(messagesRef, {
+        ...data,
+        submittedAt: new Date().toISOString(),
+      });
+
+      toast({
+        title: 'Message Sent!',
+        description: "Thank you for contacting us. We'll get back to you shortly.",
+      });
+      form.reset();
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Submission Failed',
+        description: 'There was an error sending your message. Please try again.',
+      });
+    }
   }
 
   return (
@@ -170,3 +196,4 @@ export default function ContactPage() {
     </div>
   );
 }
+
