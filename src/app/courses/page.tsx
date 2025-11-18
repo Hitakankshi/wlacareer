@@ -14,6 +14,7 @@ const courses = [
     duration: '12 Weeks',
     rating: 4.8,
     imageId: 'course-web-dev',
+    price: '999/-',
   },
   {
     title: 'Startup & Entrepreneurship',
@@ -22,6 +23,7 @@ const courses = [
     duration: '8 Weeks',
     rating: 4.9,
     imageId: 'course-firebase',
+    price: '999/-',
   },
   {
     title: 'Solar Entrepreneurship',
@@ -30,6 +32,7 @@ const courses = [
     duration: '6 Weeks',
     rating: 4.7,
     imageId: 'course-ai-prompt',
+    price: '999/-',
   },
   {
     title: 'New Idea Innovation',
@@ -38,6 +41,7 @@ const courses = [
     duration: '4 Weeks',
     rating: 4.6,
     imageId: 'about-image',
+    price: '999/-',
   },
 ];
 
@@ -69,7 +73,10 @@ export default function CoursesPage() {
                 </div>
               )}
               <CardHeader>
-                <CardTitle className="font-headline text-xl text-primary">{course.title}</CardTitle>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="font-headline text-xl text-primary">{course.title}</CardTitle>
+                  <div className="text-xl font-bold text-primary">{course.price}</div>
+                </div>
                 <div className="flex items-center justify-between text-sm text-foreground/80 pt-2">
                   <span className="flex items-center gap-1.5"><BarChart size={14} /> {course.level}</span>
                   <span className="flex items-center gap-1.5"><Clock size={14} /> {course.duration}</span>
