@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, X, Briefcase, GraduationCap, LayoutDashboard, User } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Logo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,8 @@ const navLinks = [
   { href: '/internships', label: 'Internships' },
   { href: '/courses', label: 'Courses' },
   { href: '/apply', label: 'Apply' },
+  { href: '/student/dashboard', label: 'Student Dashboard' },
+  { href: '/employer/dashboard', label: 'Employer Dashboard' },
 ];
 
 export default function Header() {
