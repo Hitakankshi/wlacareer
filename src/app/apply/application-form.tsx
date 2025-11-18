@@ -16,9 +16,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { handleResumeUpload } from './actions';
-import { useState, useRef } from 'react';
-import { Loader2, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import Image from 'next/image';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -32,8 +40,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export function ApplicationForm() {
   const { toast } = useToast();
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -49,133 +56,57 @@ export function ApplicationForm() {
   async function onSubmit(data: FormData) {
     toast({
       title: 'Application Submitted!',
-      description: `Thank you, ${data.name}. We've received your application.`,
+      description: `Thank you, ${data.name}. Please complete the payment.`,
     });
+    setIsPaymentDialogOpen(true);
+  }
+
+  const closePaymentDialog = () => {
+    setIsPaymentDialogOpen(false);
     form.reset();
   }
 
-  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (file.type !== 'application/pdf') {
-      toast({
-        variant: 'destructive',
-        title: 'Invalid File Type',
-        description: 'Please upload a PDF file.',
-      });
-      return;
-    }
-    
-    setIsAiLoading(true);
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      const resumeDataUri = reader.result as string;
-      const result = await handleResumeUpload(resumeDataUri);
-
-      if (result.success && result.data) {
-        form.setValue('name', result.data.name);
-        form.setValue('email', result.data.email);
-        form.setValue('phone', result.data.phone);
-        form.setValue('experience', result.data.experience);
-        form.setValue('skills', result.data.skills);
-        toast({
-          title: 'AI Auto-fill Complete',
-          description: 'Your information has been extracted from the resume.',
-        });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'AI Error',
-          description: result.error || 'Could not process the resume.',
-        });
-      }
-      setIsAiLoading(false);
-       // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    };
-    reader.onerror = () => {
-      toast({
-        variant: 'destructive',
-        title: 'File Read Error',
-        description: 'Could not read the uploaded file.',
-      });
-      setIsAiLoading(false);
-    };
-  };
-
   return (
-    <Card className="mt-8 border-primary/20 bg-card">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-            <div>
-                <CardTitle className="font-headline text-2xl text-primary">Application Form</CardTitle>
-                <CardDescription>Fill in your details to apply.</CardDescription>
-            </div>
-            <div>
-                <Input
-                    type="file"
-                    id="resume-upload"
-                    className="hidden"
-                    onChange={onFileChange}
-                    accept=".pdf"
-                    ref={fileInputRef}
-                    disabled={isAiLoading}
+    <>
+      <Card className="mt-8 border-primary/20 bg-card">
+        <CardHeader>
+          <div>
+            <CardTitle className="font-headline text-2xl text-primary">Application Form</CardTitle>
+            <CardDescription>Fill in your details to apply.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isAiLoading}
-                    >
-                    {isAiLoading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Sparkles className="mr-2 h-4 w-4 text-primary" />
-                    )}
-                    Auto-fill with Resume AI
-                </Button>
-            </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="email@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="email@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-             <FormField
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
@@ -188,41 +119,65 @@ export function ApplicationForm() {
                   </FormItem>
                 )}
               />
-            <FormField
-              control={form.control}
-              name="experience"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Experience Summary</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Summarize your professional experience..."
-                      className="resize-none"
-                      rows={5}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              <FormField
+                control={form.control}
+                name="experience"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Experience Summary</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Summarize your professional experience..."
+                        className="resize-none"
+                        rows={5}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="skills"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Skills</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., React, Project Management, Figma" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" size="lg" className="w-full md:w-auto">Submit Application</Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete Your Payment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Scan the QR code with your UPI app to complete the course application.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-center">
+            <Image
+              src="/upi-qr-code.png"
+              alt="UPI QR Code"
+              width={250}
+              height={250}
+              data-ai-hint="qr code"
             />
-            <FormField
-              control={form.control}
-              name="skills"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Skills</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., React, Project Management, Figma" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" size="lg" className="w-full md:w-auto">Submit Application</Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={closePaymentDialog}>Close</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
