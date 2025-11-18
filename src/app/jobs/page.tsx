@@ -76,23 +76,11 @@ export default function JobsPage() {
       </div>
 
       <Card className="mt-12 p-6 bg-card border-primary/20">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 relative">
             <Input placeholder="Search by title, company, or keyword..." className="pl-10" />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           </div>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Location" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="remote">Remote</SelectItem>
-              <SelectItem value="new-york">New York, NY</SelectItem>
-              <SelectItem value="san-francisco">San Francisco, CA</SelectItem>
-              <SelectItem value="maldives">Maldives</SelectItem>
-              <SelectItem value="global">Global</SelectItem>
-            </SelectContent>
-          </Select>
           <Select>
             <SelectTrigger>
               <SelectValue placeholder="Job Type" />
