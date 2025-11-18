@@ -152,7 +152,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                         <h4 className="font-semibold text-foreground">Email Us</h4>
-                        <p>contact@wonderlightadventure.com</p>
+                        <p>wonderlightadventurecareer@gmail.com</p>
                     </div>
                 </div>
                  <div className="flex items-start gap-4">
