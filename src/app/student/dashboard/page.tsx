@@ -1,9 +1,37 @@
+
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Briefcase, UserCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function StudentDashboardPage() {
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+
+  const applicationsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/applications`),
+      orderBy('applicationDate', 'desc'),
+      limit(5)
+    );
+  }, [firestore, user]);
+
+  const { data: applications, isLoading: isLoadingApplications } = useCollection(applicationsQuery);
+
+  const getApplicationTitle = (app: any) => {
+    if (app.type === 'job') return `Job: ${app.jobPostingId || 'General Application'}`;
+    if (app.type === 'internship') return `Internship: ${app.internshipId || 'General Application'}`;
+    if (app.type === 'course') return `Course: ${app.courseId || 'General Registration'}`;
+    return 'Application';
+  }
+
   return (
     <div className="container mx-auto max-w-7xl py-16 md:py-24">
       <div className="space-y-4 mb-12">
@@ -30,7 +58,7 @@ export default function StudentDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-primary/20 bg-card">
+        <Card className="border-primary/20 bg-card md:col-span-2 lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="space-y-1.5">
                 <CardTitle className="font-headline text-xl text-primary">My Applications</CardTitle>
@@ -39,10 +67,30 @@ export default function StudentDashboardPage() {
             <Briefcase className="h-8 w-8 text-primary/50" />
           </CardHeader>
           <CardContent>
-            <p>You have 2 pending applications.</p>
-            <Button asChild variant="link" className="p-0 mt-2">
-                <Link href="#">View Applications &rarr;</Link>
-            </Button>
+            {isUserLoading || isLoadingApplications ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            ) : applications && applications.length > 0 ? (
+              <>
+                <p>You have {applications.length} recent application(s).</p>
+                 <div className="mt-4 space-y-2">
+                  {applications.map((app) => (
+                    <div key={app.id} className="flex justify-between items-center text-sm p-2 rounded-md bg-secondary/30">
+                      <span>{getApplicationTitle(app)}</span>
+                      <Badge variant={app.status === 'pending' ? 'secondary' : 'default'}>{app.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+                <Button asChild variant="link" className="p-0 mt-4">
+                    <Link href="#">View All Applications &rarr;</Link>
+                </Button>
+              </>
+            ) : (
+              <p>You have not submitted any applications yet.</p>
+            )}
           </CardContent>
         </Card>
 
